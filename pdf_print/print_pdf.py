@@ -42,26 +42,31 @@ def extract_pages_to_pdf(pdf_paths, page_ranges, output_path="output.pdf"):
     pdf_writer = PyPDF2.PdfWriter()
     pages_added = False
 
-    for pdf_path, page_range in zip(pdf_paths, page_ranges):
-        try:
-            with open(pdf_path, "rb") as pdf_file:
-                pdf_reader = PyPDF2.PdfReader(pdf_file)
-                max_pages = len(pdf_reader.pages)
-                
-                # Parse the page ranges
-                pages = parse_page_ranges(page_range, max_pages)
-                if pages is None:
-                    print(f"Skipping {pdf_path} due to invalid ranges.")
-                    continue
-                
-                # Add the specified pages to the writer
-                for page_number in pages:
-                    page = pdf_reader.pages[page_number - 1]  # Page numbers are 0-based
-                    pdf_writer.add_page(page)
-                pages_added = True
-        
-        except Exception as e:
-            print(f"Error processing {pdf_path}: {e}")
+    for i, (pdf_path, page_range) in enumerate(zip(pdf_paths, page_ranges)):
+        valid_range = False
+        while not valid_range:
+            try:
+                with open(pdf_path, "rb") as pdf_file:
+                    pdf_reader = PyPDF2.PdfReader(pdf_file)
+                    max_pages = len(pdf_reader.pages)
+                    
+                    # Parse the page ranges
+                    pages = parse_page_ranges(page_range, max_pages)
+                    if pages is None:
+                        print(f"Invalid page ranges for {pdf_path}. Please enter again.")
+                        page_range = input(f"Page ranges for PDF {i+1}: ")
+                        continue
+                    
+                    # Add the specified pages to the writer
+                    for page_number in pages:
+                        page = pdf_reader.pages[page_number - 1]  # Page numbers are 0-based
+                        pdf_writer.add_page(page)
+                    pages_added = True
+                    valid_range = True
+            
+            except Exception as e:
+                print(f"Error processing {pdf_path}: {e}")
+                break
     
     if pages_added:
         # Save the extracted pages to a new PDF
