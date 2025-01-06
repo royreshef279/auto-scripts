@@ -1,4 +1,5 @@
 import PyPDF2
+import os
 
 def parse_page_ranges(page_ranges, max_pages):
     """
@@ -30,15 +31,26 @@ def parse_page_ranges(page_ranges, max_pages):
         return None
     return sorted(pages)
 
-def extract_pages_to_pdf(pdf_paths, page_ranges, output_path="output.pdf"):
+def extract_pages_to_pdf(pdf_paths, page_ranges, output_folder, output_filename="output.pdf"):
     """
     Extracts specified pages from given PDF files and saves them as a single PDF.
     
     Args:
         pdf_paths (list of str): Paths to the input PDF files.
         page_ranges (list of str): Page ranges to extract from each PDF.
-        output_path (str): Path to the output PDF file.
+        output_folder (str): Path to the folder where the output PDF should be saved.
+        output_filename (str): Name of the output PDF file (without extension).
     """
+    # Ensure the output filename has the .pdf extension
+    if not output_filename.endswith(".pdf"):
+        output_filename += ".pdf"
+
+    # Ensure the output folder exists, create it if it doesn't
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
+    output_path = os.path.join(output_folder, output_filename)
+
     pdf_writer = PyPDF2.PdfWriter()
     pages_added = False
 
@@ -87,8 +99,15 @@ if __name__ == "__main__":
     print("Enter the page ranges to extract from each PDF (e.g., '1,3-4,6-8'):")
     page_ranges = [input(f"Page ranges for PDF {i+1}: ") for i in range(num_pdfs)]
     
-    # Output file name
-    output_file = input("Enter the name for the output PDF (default is 'output.pdf'): ").strip() or "output.pdf"
+    # Input the output folder
+    output_folder = input("Enter the folder path to save the output PDF (default is current directory): ").strip()
+    if not output_folder:
+        output_folder = os.getcwd()  # Default to current directory
+    
+    # Input the output file name
+    output_filename = input("Enter the name for the output PDF (default is 'output.pdf'): ").strip()
+    if not output_filename:
+        output_filename = "output.pdf"  # Default name
     
     # Extract and save pages
-    extract_pages_to_pdf(pdf_paths, page_ranges, output_file)
+    extract_pages_to_pdf(pdf_paths, page_ranges, output_folder, output_filename)
